@@ -17,7 +17,10 @@ const PORT = 8000;
 // bodyParser 모듈을 이용해 해결해야 한다.
 // 하지만 express 버전 4.16.0 부터는
 // 내장 미들웨어인 express.json() 을 사용하면 된다.
+// Content-type: json
 app.use(express.json());
+// Content-type: x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/products', productRoutes);
 

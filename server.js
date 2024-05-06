@@ -1,4 +1,5 @@
 require('dotenv').config();
+// 통합 테스트를 위해 해놨
 const express = require('express');
 const app = express();
 // router 가져오기
@@ -24,4 +25,25 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/products', productRoutes);
 
-app.listen(PORT, () => console.log('Running on port: ' + PORT));
+// 에러 처리법
+// app.use('/', (req, res, next) => {
+//     // 1. 이렇게 동기로 던지면 에러 핸들링 잘됨.
+//     // throw new Error('동기: 에러다 이놈아');
+//     // 2. 비동기로 던지면 에러 핸들링 안됨. 핸들러가 못받아서 서버 중단됨
+//     // setImmediate(() => {
+//     //     throw new Error('비동기: 에러다 이놈아');
+//     // });
+//     // 3. 비동기인데 next로 넘기면 잘됨
+//     setImmediate(() => {
+//         next(Error('에러다 이놈아'));
+//     });
+// });
+
+// 커스텀 에러 핸들러. => 디폴트도 있긴함!!
+app.use((err, req, res, next) => {
+    res.status(500).json({ message: err.message });
+});
+
+const server = app.listen(PORT, () => console.log('Running on port: ' + PORT));
+// supertest 용
+module.exports = { app, server };

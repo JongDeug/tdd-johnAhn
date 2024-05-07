@@ -6,11 +6,6 @@ const app = express();
 const productRoutes = require('./router');
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/products', {
-    authSource: 'admin',
-    user: process.env['DB_ID'],
-    pass: process.env['DB_PASS'],
-}).catch(err => console.log(err));
 
 const PORT = 8000;
 
@@ -44,6 +39,14 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: err.message });
 });
 
-const server = app.listen(PORT, () => console.log('Running on port: ' + PORT));
+const server = app.listen(PORT, async () => {
+    await mongoose.connect('mongodb://localhost:27017/products', {
+        authSource: 'admin',
+        user: process.env['DB_ID'],
+        pass: process.env['DB_PASS'],
+    }).then().catch(err => console.log(err));
+
+    // console.log('Running on port: ' + PORT);
+});
 // supertest 용
 module.exports = { app, server };

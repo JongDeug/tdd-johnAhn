@@ -4,8 +4,13 @@ const newProducts = require('../data/new-product.json');
 const newProductsError = require('../data/new-product-err.json');
 const mongoose = require('mongoose');
 
-describe('Integration Test', () => {
+let firstProduct = null;
 
+// 통합 테스트는 서버를 굳이 시작하지 않아도 됨
+// + DB는 켜져있어야 함!!
+// 단위 테스트는 DB가 잘된다고 가정하고 테스트함
+// 통합 테스트는 실제 DB값을 사용함
+describe('Integration Test', () => {
     // 캬 깔끔!!
     afterAll(async () => {
         await mongoose.connection.close();
@@ -32,4 +37,30 @@ describe('Integration Test', () => {
         // 따로 받기 힘듦. 그래서 그냥 app.use 에서 커스텀 에러 핸들러를 만들어서 사용한 것임
         expect(response.body).toStrictEqual({ message: 'Product validation failed: description: Path `description` is required.' });
     });
+
+    it('GET /api/products', async () => {
+        const response = await request(app)
+            .get('/api/products');
+
+        expect(response.statusCode).toBe(200);
+        expect(Array.isArray(response.body)).toBeTruthy();
+        // toBeDefined 변수가 undefined인지 아닌지 확인하는거
+        expect(response.body[0].name).toBeDefined();
+        expect(response.body[0].description).toBeDefined();
+        firstProduct = response.body[0];
+    });
+
+    it('GET /api/products/:productId', async () => {
+        const response = await request(app)
+            .get(`/api/products/${firstProduct._id}`);
+        expect(response.statusCode).toBe(200);
+        expect(response.body.name).toBe(firstProduct.name);
+        expect(response.body.description).toBe(firstProduct.description);
+    });
+
+    it('GET id doesnt exist /api/products/:productId', async () => {
+        // 유호하지 않은 produdct id!!
+        const response = await request(app).get('/api/products/66387b4686bb893c18e94abf');
+        expect(response.statusCode).toBe(404);
+    })
 });

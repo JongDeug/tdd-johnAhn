@@ -2,9 +2,11 @@ const request = require('supertest');
 const { app, server } = require('../../server');
 const newProducts = require('../data/new-product.json');
 const newProductsError = require('../data/new-product-err.json');
+const updateProduct = require('../data/update-product.json');
 const mongoose = require('mongoose');
 
 let firstProduct = null;
+const wrongId = '66387b4686bb893c18e94abf';
 
 // 통합 테스트는 서버를 굳이 시작하지 않아도 됨
 // + DB는 켜져있어야 함!!
@@ -60,7 +62,46 @@ describe('Integration Test', () => {
 
     it('GET id doesnt exist /api/products/:productId', async () => {
         // 유호하지 않은 produdct id!!
-        const response = await request(app).get('/api/products/66387b4686bb893c18e94abf');
+        const response = await request(app).get(`/api/products/${wrongId}`);
         expect(response.statusCode).toBe(404);
+    });
+
+    it('PUT /api/products/:productId', async () => {
+        const response = await request(app)
+            .put(`/api/products/${firstProduct._id}`)
+            .send(updateProduct);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.name).toBe(updateProduct.name);
+        expect(response.body.description).toBe(updateProduct.description);
+        expect(response.body.price).toBe(updateProduct.price);
+    });
+
+    it('should return 404 on PUT /api/products/:productId', async () => {
+        const response = await request(app)
+            .put(`/api/products/${wrongId}`)
+            .send(updateProduct);
+
+        // console.log(response.body);
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toStrictEqual({ message: 'id doesnt exist' });
+    });
+
+    it('DELETE /api/products/:productId', async () => {
+        const response = await request(app)
+            .delete(`/api/products/${firstProduct._id}`);
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.name).toBe(updateProduct.name);
+        expect(response.body.description).toBe(updateProduct.description);
+        expect(response.body.price).toBe(updateProduct.price);
+    });
+
+    it('should return 404 on DELETE /api/products/:productId', async () => {
+        const response = await request(app)
+            .delete(`/api/products/${wrongId}`);
+
+        expect(response.statusCode).toBe(404);
+        expect(response.body).toBeDefined();
     })
 });

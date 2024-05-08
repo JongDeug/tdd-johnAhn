@@ -36,3 +36,32 @@ exports.getProductById = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateProduct = async (req, res, next) => {
+    try {
+        const updateProduct = await productModel.findByIdAndUpdate(req.params.productId, req.body, { new: true });
+
+        if (!updateProduct) {
+            res.status(404).send({ message: 'id doesnt exist' });
+            return;
+        }
+
+        res.status(200).json(updateProduct);
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.deleteProduct = async (req, res, next) => {
+    try {
+        const deletedProduct = await productModel.findByIdAndDelete(req.params.productId);
+
+        if (!deletedProduct) {
+            res.status(404).send();
+            return;
+        }
+        res.status(200).json(deletedProduct);
+    } catch (error) {
+        next(error);
+    }
+};
